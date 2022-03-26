@@ -1,0 +1,50 @@
+---
+# tasks file for Nexus
+- name: Update packages
+  apt:
+    update_cache: yes
+
+- name: Install Java
+  apt:
+    name: openjdk-8-jdk
+    update_cache: yes
+
+- name: Create a directory if it does not exist
+  ansible.builtin.file:
+    path: /app
+    state: directory
+
+- name: Downloading Nexus
+  unarchive:
+    src: https://download.sonatype.com/nexus/3/latest-unix.tar.gz
+    dest: /app
+    remote_src: yes
+
+- name: rename the file
+  command: sudo mv /app/nexus-3.38.0-01 /app/nexus
+  
+- name: Add user "nexus"
+  ansible.builtin.user:
+    name: nexus
+    comment: nexus
+    group: nexus
+
+- name: Change the file ownership and permissions
+  file:
+    path: /app
+    owner: nexus
+    group: nexus
+
+- name: Change in nexus.rc file
+  ansible.builtin.lineinfile:
+    path: /app/nexus/bin/nexus.rc
+    regexp: '^run_as_us=""'
+    line: run_as_user="nexus"
+
+- name: Register service with chkconfig system
+  service: name=nexus enabled=yes
+
+- name: start nexus service
+  service:
+    name: nexus
+    state: started

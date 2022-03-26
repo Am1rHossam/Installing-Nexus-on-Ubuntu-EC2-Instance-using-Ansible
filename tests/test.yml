@@ -1,0 +1,6 @@
+---
+- hosts: Nexus
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - Nexus
